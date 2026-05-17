@@ -1,5 +1,5 @@
 """
-Data collection module for stock price data using yfinance.
+Módulo de coleta de dados de preços de ações usando yfinance.
 """
 
 import yfinance as yf
@@ -14,16 +14,16 @@ logger = logging.getLogger(__name__)
 
 
 class StockDataCollector:
-    """Collects and preprocesses stock data from Yahoo Finance."""
+    """Coleta e processa dados de ações do Yahoo Finance."""
     
     def __init__(self, symbol: str, start_date: str = None, end_date: str = None):
         """
-        Initialize the data collector.
+        Inicializa o coletor de dados.
         
         Args:
-            symbol: Stock ticker symbol (e.g., 'AAPL')
-            start_date: Start date in format 'YYYY-MM-DD' (default: 5 years ago)
-            end_date: End date in format 'YYYY-MM-DD' (default: today)
+            symbol: Símbolo do ticker da ação (ex: 'AAPL')
+            start_date: Data de início no formato 'YYYY-MM-DD' (padrão: -5 anos)
+            end_date: Data de término no formato 'YYYY-MM-DD' (padrão: hoje)
         """
         self.symbol = symbol
         
@@ -39,17 +39,17 @@ class StockDataCollector:
             self.start_date = start_date
             
         self.df = None
-        logger.info(f"Initialized StockDataCollector for {symbol} from {self.start_date} to {self.end_date}")
+        logger.info(f"StockDataCollector inicializado para {symbol} de {self.start_date} a {self.end_date}")
     
     def download(self) -> pd.DataFrame:
         """
-        Download historical stock data from Yahoo Finance.
+        Baixa dados históricos de ações do Yahoo Finance.
         
         Returns:
-            DataFrame with OHLCV data (Open, High, Low, Close, Volume, Adj Close)
+            DataFrame com dados OHLCV (Abertura, Máxima, Mínima, Fechamento, Volume, Fechamento Ajustado)
         """
         try:
-            logger.info(f"Downloading data for {self.symbol}...")
+            logger.info(f"Baixando dados para {self.symbol}...")
             self.df = yf.download(
                 self.symbol,
                 start=self.start_date,
@@ -58,23 +58,23 @@ class StockDataCollector:
             )
             
             if self.df.empty:
-                raise ValueError(f"No data found for symbol {self.symbol}")
+                raise ValueError(f"Nenhum dado encontrado para o símbolo {self.symbol}")
                 
-            logger.info(f"Downloaded {len(self.df)} records")
+            logger.info(f"Baixados {len(self.df)} registros")
             return self.df
             
         except Exception as e:
-            logger.error(f"Error downloading data: {str(e)}")
+            logger.error(f"Erro ao baixar dados: {str(e)}")
             raise
     
     def get_data(self) -> pd.DataFrame:
-        """Get the downloaded dataframe."""
+        """Obtém o dataframe baixado."""
         if self.df is None:
             self.download()
         return self.df.copy()
     
     def get_info(self) -> dict:
-        """Get basic info about the stock."""
+        """Obtém informações básicas sobre a ação."""
         try:
             ticker = yf.Ticker(self.symbol)
             info = {
@@ -87,20 +87,20 @@ class StockDataCollector:
             }
             return info
         except Exception as e:
-            logger.error(f"Error getting stock info: {str(e)}")
+            logger.error(f"Erro ao obter informações da ação: {str(e)}")
             return {}
 
 
 class DataPreprocessor:
-    """Preprocesses stock data for model training."""
+    """Pré-processa dados de ações para treinamento do modelo."""
     
     def __init__(self, df: pd.DataFrame, lookback: int = 60):
         """
-        Initialize preprocessor.
+        Inicializa o pré-processador.
         
         Args:
-            df: DataFrame with stock data
-            lookback: Number of days to look back for predictions (default: 60)
+            df: DataFrame com dados de ações
+            lookback: Número de dias para olhar para trás para previsões (padrão: 60)
         """
         self.df = df.copy()
         self.lookback = lookback
@@ -115,27 +115,27 @@ class DataPreprocessor:
     
     def prepare_data(self, test_size: float = 0.2, val_size: float = 0.1) -> Tuple[dict, dict]:
         """
-        Prepare and split data for training, validation, and testing.
+        Prepara e divide dados para treinamento, validação e teste.
         
         Args:
-            test_size: Proportion of data for testing (default: 0.2)
-            val_size: Proportion of data for validation (default: 0.1)
+            test_size: Proporção de dados para teste (padrão: 0,2)
+            val_size: Proporção de dados para validação (padrão: 0,1)
             
         Returns:
-            Tuple of (training_data_dict, preprocessing_info_dict)
+            Tupla de (dicionário_dados_treinamento, dicionário_info_pre_processamento)
         """
         from sklearn.preprocessing import MinMaxScaler
         
-        logger.info("Starting data preprocessing...")
+        logger.info("Iniciando processamento de dados...")
         
-        # Extract Close prices
+        # Extrai preços de fechamento
         data = self.df[['Close']].values.astype(float)
         
-        # Normalize data
+        # Normaliza dados
         self.scaler = MinMaxScaler(feature_range=(0, 1))
         scaled_data = self.scaler.fit_transform(data)
         
-        # Split into train, val, test
+        # Divide em treino, validação, teste
         total_len = len(scaled_data)
         val_len = int(total_len * val_size)
         test_len = int(total_len * test_size)
@@ -152,9 +152,9 @@ class DataPreprocessor:
         self.X_val, self.y_val = self._create_sequences(val_data, self.lookback)
         self.X_test, self.y_test = self._create_sequences(test_data, self.lookback)
         
-        logger.info(f"Training samples: {len(self.X_train)}")
-        logger.info(f"Validation samples: {len(self.X_val)}")
-        logger.info(f"Test samples: {len(self.X_test)}")
+        logger.info(f"Amostras de treinamento: {len(self.X_train)}")
+        logger.info(f"Amostras de validação: {len(self.X_val)}")
+        logger.info(f"Amostras de teste: {len(self.X_test)}")
         
         data_dict = {
             'X_train': self.X_train,
@@ -178,14 +178,14 @@ class DataPreprocessor:
     @staticmethod
     def _create_sequences(data: np.ndarray, lookback: int) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Create sequences for LSTM training.
+        Cria sequências para treinamento de LSTM.
         
         Args:
-            data: Scaled data
-            lookback: Number of time steps to use as input
+            data: Dados escalados
+            lookback: Número de passos de tempo para usar como entrada
             
         Returns:
-            Tuple of (X, y) sequences
+            Tupla de sequências (X, y)
         """
         X, y = [], []
         for i in range(lookback, len(data)):
@@ -195,11 +195,11 @@ class DataPreprocessor:
         return np.array(X), np.array(y)
     
     def get_scaler(self):
-        """Get the fitted scaler."""
+        """Obtém o escalador ajustado."""
         return self.scaler
     
     def inverse_transform(self, data: np.ndarray) -> np.ndarray:
-        """Inverse transform normalized data back to original scale."""
+        """Transforma dados normalizados de volta para a escala original."""
         if self.scaler is None:
-            raise ValueError("Scaler not fitted yet")
+            raise ValueError("Escalador ainda não foi ajustado")
         return self.scaler.inverse_transform(data.reshape(-1, 1))

@@ -102,18 +102,18 @@ def load_model_and_artifacts():
     
     try:
         # Load model
-        model_path = '/home/raulg/dev/laughing-couscous/models/lstm_model.h5'
+        model_path = 'models/lstm_model.h5'
         model = tf.keras.models.load_model(model_path)
         logger.info(f"✓ Model loaded from {model_path}")
         
         # Load scaler
-        scaler_path = '/home/raulg/dev/laughing-couscous/models/scaler.pkl'
+        scaler_path = 'models/scaler.pkl'
         with open(scaler_path, 'rb') as f:
             scaler = pickle.load(f)
         logger.info(f"✓ Scaler loaded from {scaler_path}")
         
         # Load model info
-        model_info_path = '/home/raulg/dev/laughing-couscous/models/model_info.json'
+        model_info_path = 'models/model_info.json'
         with open(model_info_path, 'r') as f:
             model_info = json.load(f)
         logger.info(f"✓ Model info loaded from {model_info_path}")
