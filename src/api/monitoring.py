@@ -1,5 +1,5 @@
 """
-Monitoring and logging module for production API.
+Módulo de monitoramento e logging para API de produção.
 """
 
 import logging
@@ -13,31 +13,31 @@ import os
 
 
 class ProductionLogger:
-    """Logger for production monitoring."""
+    """Logger para monitoramento de produção."""
     
     def __init__(self, name: str, log_file: str = "logs/app.log"):
-        """Initialize logger."""
+        """Inicializa o logger."""
         self.name = name
         self.log_file = log_file
         self.logger = self._setup_logger()
     
     def _setup_logger(self) -> logging.Logger:
-        """Setup logger with file and console handlers."""
+        """Configura logger com manipuladores de arquivo e console."""
         logger = logging.getLogger(self.name)
         logger.setLevel(logging.DEBUG)
         
-        # Create logs directory if it doesn't exist
+        # Cria diretório de logs se não existir
         os.makedirs(os.path.dirname(self.log_file), exist_ok=True)
         
-        # File handler
+        # Manipulador de arquivo
         file_handler = logging.FileHandler(self.log_file)
         file_handler.setLevel(logging.INFO)
         
-        # Console handler
+        # Manipulador de console
         console_handler = logging.StreamHandler()
         console_handler.setLevel(logging.INFO)
         
-        # Formatter
+        # Formatador
         formatter = logging.Formatter(
             '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S'
@@ -52,34 +52,34 @@ class ProductionLogger:
         return logger
     
     def log_request(self, endpoint: str, method: str, status_code: int, duration: float):
-        """Log API request."""
+        """Log de requisição da API."""
         self.logger.info(
-            f"Request | Endpoint: {endpoint} | Method: {method} | "
-            f"Status: {status_code} | Duration: {duration:.3f}s"
+            f"Requisição | Endpoint: {endpoint} | Método: {method} | "
+            f"Status: {status_code} | Duração: {duration:.3f}s"
         )
     
     def log_error(self, error_type: str, error_msg: str, endpoint: str = None):
-        """Log errors."""
+        """Log de erros."""
         if endpoint:
             self.logger.error(
-                f"Error | Type: {error_type} | Endpoint: {endpoint} | Message: {error_msg}"
+                f"Erro | Tipo: {error_type} | Endpoint: {endpoint} | Mensagem: {error_msg}"
             )
         else:
-            self.logger.error(f"Error | Type: {error_type} | Message: {error_msg}")
+            self.logger.error(f"Erro | Tipo: {error_type} | Mensagem: {error_msg}")
     
     def log_prediction(self, symbol: str, predicted_price: float, confidence: str):
-        """Log prediction."""
+        """Log de previsão."""
         self.logger.info(
-            f"Prediction | Symbol: {symbol} | Predicted Price: ${predicted_price:.2f} | "
-            f"Confidence: {confidence}"
+            f"Previsão | Símbolo: {symbol} | Preço Previsto: ${predicted_price:.2f} | "
+            f"Confiança: {confidence}"
         )
 
 
 class PerformanceMonitor:
-    """Monitor system and API performance."""
+    """Monitora desempenho do sistema e da API."""
     
     def __init__(self):
-        """Initialize monitor."""
+        """Inicializa o monitor."""
         self.start_time = time.time()
         self.request_count = 0
         self.error_count = 0
@@ -87,7 +87,7 @@ class PerformanceMonitor:
         self.predictions_made = 0
     
     def get_system_metrics(self) -> dict:
-        """Get current system metrics."""
+        """Obtém métricas atuais do sistema."""
         process = psutil.Process(os.getpid())
         
         return {
@@ -100,7 +100,7 @@ class PerformanceMonitor:
         }
     
     def get_api_metrics(self) -> dict:
-        """Get API performance metrics."""
+        """Obtém métricas de desempenho da API."""
         avg_response_time = (
             self.total_response_time / self.request_count 
             if self.request_count > 0 
@@ -123,18 +123,18 @@ class PerformanceMonitor:
         }
     
     def record_request(self, duration: float, success: bool = True):
-        """Record request metrics."""
+        """Registra métricas de requisição."""
         self.request_count += 1
         self.total_response_time += duration
         if not success:
             self.error_count += 1
     
     def record_prediction(self):
-        """Record prediction."""
+        """Registra previsão."""
         self.predictions_made += 1
     
     def get_all_metrics(self) -> dict:
-        """Get all metrics."""
+        """Obtém todas as métricas."""
         return {
             'system': self.get_system_metrics(),
             'api': self.get_api_metrics(),
@@ -142,34 +142,34 @@ class PerformanceMonitor:
 
 
 class MetricsCollector:
-    """Collect and store metrics."""
+    """Coleta e armazena métricas."""
     
     def __init__(self, metrics_file: str = "logs/metrics.jsonl"):
-        """Initialize collector."""
+        """Inicializa o coletor."""
         self.metrics_file = metrics_file
         os.makedirs(os.path.dirname(metrics_file), exist_ok=True)
     
     def record(self, data: dict):
-        """Record metrics to file."""
+        """Registra métricas em arquivo."""
         try:
             with open(self.metrics_file, 'a') as f:
                 f.write(json.dumps(data) + '\n')
         except Exception as e:
-            print(f"Error recording metrics: {str(e)}")
+            print(f"Erro ao registrar métricas: {str(e)}")
     
     def get_latest(self, n: int = 100) -> list:
-        """Get latest n metrics."""
+        """Obtém as últimas n métricas."""
         try:
             with open(self.metrics_file, 'r') as f:
                 lines = f.readlines()
                 return [json.loads(line) for line in lines[-n:]]
         except Exception as e:
-            print(f"Error reading metrics: {str(e)}")
+            print(f"Erro ao ler métricas: {str(e)}")
             return []
 
 
 def monitor_performance(logger: ProductionLogger, monitor: PerformanceMonitor):
-    """Decorator to monitor endpoint performance."""
+    """Decorador para monitorar desempenho do endpoint."""
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def async_wrapper(*args, **kwargs) -> Any:
@@ -178,12 +178,12 @@ def monitor_performance(logger: ProductionLogger, monitor: PerformanceMonitor):
                 result = await func(*args, **kwargs)
                 duration = time.time() - start_time
                 monitor.record_request(duration, success=True)
-                logger.logger.debug(f"{func.__name__} completed in {duration:.3f}s")
+                logger.logger.debug(f"{func.__name__} concluído em {duration:.3f}s")
                 return result
             except Exception as e:
                 duration = time.time() - start_time
                 monitor.record_request(duration, success=False)
-                logger.log_error("ExecutionError", str(e), endpoint=func.__name__)
+                logger.log_error("ErroDeExecução", str(e), endpoint=func.__name__)
                 raise
         
         @wraps(func)
@@ -193,21 +193,21 @@ def monitor_performance(logger: ProductionLogger, monitor: PerformanceMonitor):
                 result = func(*args, **kwargs)
                 duration = time.time() - start_time
                 monitor.record_request(duration, success=True)
-                logger.logger.debug(f"{func.__name__} completed in {duration:.3f}s")
+                logger.logger.debug(f"{func.__name__} concluído em {duration:.3f}s")
                 return result
             except Exception as e:
                 duration = time.time() - start_time
                 monitor.record_request(duration, success=False)
-                logger.log_error("ExecutionError", str(e), endpoint=func.__name__)
+                logger.log_error("ErroDeExecução", str(e), endpoint=func.__name__)
                 raise
         
-        # Return async wrapper if function is async
+        # Retorna wrapper assincronismo se a função for assincronismo
         return async_wrapper if hasattr(func, '__await__') else sync_wrapper
     
     return decorator
 
 
-# Global instances
+# Instâncias globais
 logger = ProductionLogger("StockPredictionAPI")
 monitor = PerformanceMonitor()
 metrics_collector = MetricsCollector()

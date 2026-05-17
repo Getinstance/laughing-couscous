@@ -1,5 +1,5 @@
 """
-FastAPI application for serving LSTM stock price predictions.
+Aplicação FastAPI para servir previsões de preços de ações LSTM.
 """
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -11,22 +11,22 @@ import pickle
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Any
 import tensorflow as tf
 import yfinance as yf
 
-# Configure logging
+# Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+# Inicializar aplicação FastAPI
 app = FastAPI(
-    title="Stock Price Prediction API",
-    description="LSTM-based API for predicting stock closing prices",
+    title="API de Previsão de Preços de Ações",
+    description="API baseada em LSTM para prever preços de fechamento de ações",
     version="1.0.0"
 )
 
-# Add CORS middleware
+# Adicionar middleware CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -35,26 +35,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Global variables for model and scaler
+# Variáveis globais para modelo e escalador
 model = None
 scaler = None
 model_info = None
 lookback_period = 60
 
 
-# Pydantic models for request/response
+# Modelos Pydantic para requisição/resposta
 class PredictionRequest(BaseModel):
-    """Request model for price prediction."""
-    symbol: str = Field(..., example="AAPL", description="Stock ticker symbol")
-    days_ahead: int = Field(default=1, ge=1, le=30, description="Number of days to predict ahead")
+    """Modelo de requisição para previsão de preço."""
+    symbol: str = Field(..., example="AAPL", description="Símbolo do ticker da ação")
+    days_ahead: int = Field(default=1, ge=1, le=30, description="Número de dias para prever adiante")
     historical_data: Optional[List[float]] = Field(
-        default=None, 
-        description="Optional historical prices to use instead of downloading"
+        default=None,
+        description="Preços históricos opcionais para usar ao invés de baixar"
     )
 
 
 class PredictionResponse(BaseModel):
-    """Response model for price prediction."""
+    """Modelo de resposta para previsão de preço."""
     symbol: str
     current_price: float
     predicted_price: float
@@ -64,27 +64,27 @@ class PredictionResponse(BaseModel):
 
 
 class HistoricalPredictionRequest(BaseModel):
-    """Request model for historical data predictions."""
+    """Modelo de requisição para previsões de dados históricos."""
     symbol: str
-    start_date: str = Field(..., example="2024-01-01", description="Start date for historical data")
+    start_date: str = Field(..., example="2024-01-01", description="Data de início para dados históricos")
     end_date: Optional[str] = Field(
         default=None,
         example="2024-12-31",
-        description="End date for historical data (default: today)"
+        description="Data de término para dados históricos (padrão: hoje)"
     )
-    lookback: int = Field(default=60, ge=30, le=120, description="Lookback period for LSTM")
+    lookback: int = Field(default=60, ge=30, le=120, description="Período de retrospectiva para LSTM")
 
 
 class HistoricalPredictionResponse(BaseModel):
-    """Response model for historical predictions."""
+    """Modelo de resposta para previsões históricas."""
     symbol: str
-    predictions: List[Dict[str, float]]
+    predictions: List[Dict[str, Any]]
     metrics: Dict[str, float]
     prediction_date: str
 
 
 class ModelInfoResponse(BaseModel):
-    """Response model for model information."""
+    """Modelo de resposta para informações do modelo."""
     model_name: str
     version: str
     symbol: str
@@ -97,45 +97,45 @@ class ModelInfoResponse(BaseModel):
 
 
 def load_model_and_artifacts():
-    """Load the pre-trained model and associated artifacts."""
+    """Carrega o modelo pré-treinado e artefatos associados."""
     global model, scaler, model_info, lookback_period
     
     try:
-        # Load model
+        # Carregar modelo
         model_path = 'models/lstm_model.h5'
         model = tf.keras.models.load_model(model_path)
-        logger.info(f"✓ Model loaded from {model_path}")
+        logger.info(f"✓ Modelo carregado de {model_path}")
         
-        # Load scaler
+        # Carregar escalador
         scaler_path = 'models/scaler.pkl'
         with open(scaler_path, 'rb') as f:
             scaler = pickle.load(f)
-        logger.info(f"✓ Scaler loaded from {scaler_path}")
+        logger.info(f"✓ Escalador carregado de {scaler_path}")
         
-        # Load model info
+        # Carregar informações do modelo
         model_info_path = 'models/model_info.json'
         with open(model_info_path, 'r') as f:
             model_info = json.load(f)
-        logger.info(f"✓ Model info loaded from {model_info_path}")
+        logger.info(f"✓ Informações do modelo carregadas de {model_info_path}")
         
         lookback_period = model_info['lookback_period']
-        logger.info(f"✓ Lookback period set to {lookback_period}")
+        logger.info(f"✓ Período de retrospectiva definido para {lookback_period}")
         
     except Exception as e:
-        logger.error(f"Error loading model artifacts: {str(e)}")
+        logger.error(f"Erro ao carregar artefatos do modelo: {str(e)}")
         raise
 
 
 def get_stock_data(symbol: str, days: int = 365) -> np.ndarray:
     """
-    Download historical stock data.
+    Baixar dados históricos de ações.
     
     Args:
-        symbol: Stock ticker symbol
-        days: Number of days of historical data to download
+        symbol: Símbolo do ticker da ação
+        days: Número de dias de dados históricos para baixar
         
     Returns:
-        Array of closing prices
+        Array de preços de fechamento
     """
     try:
         end_date = datetime.now()
@@ -150,25 +150,25 @@ def get_stock_data(symbol: str, days: int = 365) -> np.ndarray:
         
         return df['Close'].values
     except Exception as e:
-        logger.error(f"Error downloading stock data: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"Error downloading data: {str(e)}")
+        logger.error(f"Erro ao baixar dados de ações: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Erro ao baixar dados: {str(e)}")
 
 
 def prepare_sequences(data: np.ndarray, lookback: int) -> np.ndarray:
     """
-    Prepare sequences for LSTM model.
+    Preparar sequências para o modelo LSTM.
     
     Args:
-        data: Input data array
-        lookback: Number of time steps
+        data: Array de dados de entrada
+        lookback: Número de passos de tempo
         
     Returns:
-        Reshaped data for LSTM
+        Dados redimensionados para LSTM
     """
-    # Normalize data
+    # Normalizar dados
     scaled_data = scaler.transform(data.reshape(-1, 1))
     
-    # Take the last 'lookback' values
+    # Pegar os últimos 'lookback' valores
     sequence = scaled_data[-lookback:].flatten()
     sequence = sequence.reshape(1, lookback, 1)
     
@@ -177,13 +177,13 @@ def prepare_sequences(data: np.ndarray, lookback: int) -> np.ndarray:
 
 def predict_price(sequence: np.ndarray) -> float:
     """
-    Make prediction using the LSTM model.
+    Fazer previsão usando o modelo LSTM.
     
     Args:
-        sequence: Prepared sequence data
+        sequence: Dados de sequência preparados
         
     Returns:
-        Predicted price
+        Preço previsto
     """
     prediction = model.predict(sequence, verbose=0)
     predicted_price = scaler.inverse_transform(prediction)
@@ -192,22 +192,22 @@ def predict_price(sequence: np.ndarray) -> float:
 
 @app.on_event("startup")
 async def startup_event():
-    """Load model on application startup."""
-    logger.info("Starting up application...")
+    """Carregar modelo na inicialização da aplicação."""
+    logger.info("Iniciando aplicação...")
     load_model_and_artifacts()
-    logger.info("✓ Application startup completed!")
+    logger.info("✓ Inicialização da aplicação concluída!")
 
 
 @app.get("/health", tags=["Health"])
 async def health_check() -> Dict[str, str]:
     """
-    Check API health status.
+    Verificar status de saúde da API.
     
     Returns:
-        Health status
+        Status de saúde
     """
     return {
-        "status": "healthy",
+        "status": "saudável",
         "timestamp": datetime.now().isoformat(),
         "model_loaded": model is not None
     }
@@ -216,16 +216,16 @@ async def health_check() -> Dict[str, str]:
 @app.get("/model/info", response_model=ModelInfoResponse, tags=["Model"])
 async def get_model_info() -> Dict:
     """
-    Get information about the trained model.
+    Obter informações sobre o modelo treinado.
     
     Returns:
-        Model configuration and metrics
+        Configuração e métricas do modelo
     """
     if model_info is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+        raise HTTPException(status_code=503, detail="Modelo não carregado")
     
     return ModelInfoResponse(
-        model_name="LSTM Stock Price Predictor",
+        model_name="Preditor de Preços de Ações LSTM",
         version="1.0.0",
         symbol=model_info.get('symbol', 'AAPL'),
         lookback_period=model_info.get('lookback_period', 60),
@@ -240,50 +240,50 @@ async def get_model_info() -> Dict:
 @app.post("/predict", response_model=PredictionResponse, tags=["Predictions"])
 async def predict_stock_price(request: PredictionRequest) -> Dict:
     """
-    Predict stock closing price.
+    Prever preço de fechamento de ação.
     
     Args:
-        request: Prediction request with stock symbol
+        request: Requisição de previsão com símbolo da ação
         
     Returns:
-        Predicted price and metadata
+        Preço previsto e metadados
     """
     if model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+        raise HTTPException(status_code=503, detail="Modelo não carregado")
     
     try:
-        # Get current price
+        # Obter preço atual
         stock = yf.Ticker(request.symbol)
         current_data = stock.history(period='1d')
         if current_data.empty:
-            raise HTTPException(status_code=400, detail=f"No data found for symbol {request.symbol}")
+            raise HTTPException(status_code=400, detail=f"Nenhum dado encontrado para o símbolo {request.symbol}")
         
         current_price = float(current_data['Close'].iloc[-1])
         
-        # Get historical data
+        # Obter dados históricos
         if request.historical_data:
             historical_prices = np.array(request.historical_data)
         else:
-            # Download last 2 years of data to ensure we have enough
+            # Baixar últimos 2 anos de dados para garantir que temos o suficiente
             historical_prices = get_stock_data(request.symbol, days=730)
         
-        # Prepare sequences and predict
+        # Preparar sequências e prever
         sequence, _ = prepare_sequences(historical_prices, lookback_period)
         predicted_price = predict_price(sequence)
         
-        # Calculate confidence level
+        # Calcular nível de confiança
         price_change = abs(predicted_price - current_price) / current_price * 100
         if price_change < 2:
-            confidence = "High"
+            confidence = "Alta"
         elif price_change < 5:
-            confidence = "Medium"
+            confidence = "Média"
         else:
-            confidence = "Low"
+            confidence = "Baixa"
         
-        # Calculate prediction date
+        # Calcular data de previsão
         prediction_date = (datetime.now() + timedelta(days=request.days_ahead)).strftime('%Y-%m-%d')
         
-        logger.info(f"Prediction for {request.symbol}: {predicted_price:.2f} ({confidence} confidence)")
+        logger.info(f"Previsão para {request.symbol}: {predicted_price:.2f} (confiança {confidence})")
         
         return PredictionResponse(
             symbol=request.symbol,
@@ -297,26 +297,26 @@ async def predict_stock_price(request: PredictionRequest) -> Dict:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Prediction error: {str(e)}")
+        logger.error(f"Erro de previsão: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro de previsão: {str(e)}")
 
 
 @app.post("/predict/historical", response_model=HistoricalPredictionResponse, tags=["Predictions"])
 async def predict_historical(request: HistoricalPredictionRequest) -> Dict:
     """
-    Generate predictions for historical period.
+    Gerar previsões para período histórico.
     
     Args:
-        request: Historical prediction request
+        request: Requisição de previsão histórica
         
     Returns:
-        List of predictions with metrics
+        Lista de previsões com métricas
     """
     if model is None:
-        raise HTTPException(status_code=503, detail="Model not loaded")
+        raise HTTPException(status_code=503, detail="Modelo não carregado")
     
     try:
-        # Get data
+        # Obter dados
         end_date = request.end_date or datetime.now().strftime('%Y-%m-%d')
         df = yf.download(
             request.symbol,
@@ -326,26 +326,26 @@ async def predict_historical(request: HistoricalPredictionRequest) -> Dict:
         )
         
         if df.empty:
-            raise HTTPException(status_code=400, detail="No data found for the specified date range")
+            raise HTTPException(status_code=400, detail="Nenhum dado encontrado para o intervalo de datas especificado")
         
-        # Make predictions for each day
+        # Fazer previsões para cada dia
         predictions = []
         prices = df['Close'].values
         
         for i in range(request.lookback, len(prices)):
-            # Use data up to day i
+            # Usar dados até o dia i
             historical = prices[:i]
             sequence, _ = prepare_sequences(historical, request.lookback)
             pred_price = predict_price(sequence)
             
             predictions.append({
                 'date': df.index[i].strftime('%Y-%m-%d'),
-                'actual': float(prices[i]),
+                'actual': float(prices[i].item()),
                 'predicted': float(pred_price),
-                'error': float(prices[i] - pred_price)
+                'error': float(prices[i].item() - pred_price)
             })
         
-        # Calculate metrics
+        # Calcular métricas
         actual_prices = np.array([p['actual'] for p in predictions])
         predicted_prices = np.array([p['predicted'] for p in predictions])
         
@@ -353,11 +353,11 @@ async def predict_historical(request: HistoricalPredictionRequest) -> Dict:
         rmse = np.sqrt(np.mean((actual_prices - predicted_prices) ** 2))
         mape = np.mean(np.abs((actual_prices - predicted_prices) / actual_prices)) * 100
         
-        logger.info(f"Historical predictions for {request.symbol}: MAE={mae:.4f}, RMSE={rmse:.4f}, MAPE={mape:.2f}%")
+        logger.info(f"Previsões históricas para {request.symbol}: MAE={mae:.4f}, RMSE={rmse:.4f}, MAPE={mape:.2f}%")
         
         return HistoricalPredictionResponse(
             symbol=request.symbol,
-            predictions=predictions[-100:],  # Return last 100 for API efficiency
+            predictions=predictions[-100:],  # Retornar últimas 100 para eficiência da API
             metrics={
                 'MAE': float(mae),
                 'RMSE': float(rmse),
@@ -369,20 +369,20 @@ async def predict_historical(request: HistoricalPredictionRequest) -> Dict:
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Historical prediction error: {str(e)}")
-        raise HTTPException(status_code=500, detail=f"Historical prediction error: {str(e)}")
+        logger.error(f"Erro de previsão histórica: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Erro de previsão histórica: {str(e)}")
 
 
 @app.get("/", tags=["Root"])
 async def read_root() -> Dict:
     """
-    Root endpoint with API documentation.
+    Endpoint raiz com documentação da API.
     
     Returns:
-        Welcome message and available endpoints
+        Mensagem de boas-vindas e endpoints disponíveis
     """
     return {
-        "message": "Stock Price Prediction API",
+        "message": "API de Previsão de Preços de Ações",
         "version": "1.0.0",
         "documentation": "/docs",
         "openapi_schema": "/openapi.json",
@@ -398,7 +398,7 @@ async def read_root() -> Dict:
 if __name__ == "__main__":
     import uvicorn
     
-    # Run the application
+    # Executar a aplicação
     uvicorn.run(
         app,
         host="0.0.0.0",

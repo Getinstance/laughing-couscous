@@ -1,75 +1,75 @@
-# API Documentation
+# Documentação da API
 
-## Overview
+## Visão Geral
 
-A Stock Price Prediction API that uses LSTM (Long Short-Term Memory) neural networks to predict stock closing prices. The API provides endpoints for single predictions, historical predictions, and model information.
+Uma API de Previsão de Preços de Ações que usa redes neurais LSTM (Long Short-Term Memory) para prever preços de fechamento de ações. A API fornece endpoints para previsões únicas, previsões históricas e informações do modelo.
 
-## Base URL
+## URL Base
 
-- **Development**: `http://localhost:8000`
-- **Production**: `https://api.example.com` (quando deployada)
+- **Desenvolvimento**: `http://localhost:8000`
+- **Produção**: `https://api.example.com` (quando implementada)
 
-## Authentication
+## Autenticação
 
-Currently, the API does not require authentication. In production, consider implementing:
-- API Key authentication
+Atualmente, a API não requer autenticação. Em produção, considere implementar:
+- Autenticação por chave de API
 - OAuth 2.0
-- JWT tokens
+- Tokens JWT
 
-## Request/Response Format
+## Formato de Requisição/Resposta
 
-All requests and responses are in JSON format.
+Todas as requisições e respostas estão em formato JSON.
 
-### Error Responses
+### Respostas de Erro
 
-All error responses follow this format:
+Todas as respostas de erro seguem este formato:
 
 ```json
 {
-  "detail": "Error message describing what went wrong"
+  "detail": "Mensagem de erro descrevendo o que deu errado"
 }
 ```
 
 ## Endpoints
 
-### 1. Health Check
+### 1. Verificação de Saúde
 
 **Endpoint**: `GET /health`
 
-**Description**: Checks if the API is running and model is loaded.
+**Descrição**: Verifica se a API está rodando e se o modelo foi carregado.
 
-**Parameters**: None
+**Parâmetros**: Nenhum
 
-**Response (200)**:
+**Resposta (200)**:
 ```json
 {
-  "status": "healthy",
+  "status": "saudável",
   "timestamp": "2024-05-11T10:30:00.123456Z",
   "model_loaded": true
 }
 ```
 
-**Response (503)**:
+**Resposta (503)**:
 ```json
 {
-  "detail": "Model not loaded"
+  "detail": "Modelo não carregado"
 }
 ```
 
 ---
 
-### 2. Get Model Information
+### 2. Obter Informações do Modelo
 
 **Endpoint**: `GET /model/info`
 
-**Description**: Retrieves detailed information about the trained LSTM model.
+**Descrição**: Recupera informações detalhadas sobre o modelo LSTM treinado.
 
-**Parameters**: None
+**Parâmetros**: Nenhum
 
-**Response (200)**:
+**Resposta (200)**:
 ```json
 {
-  "model_name": "LSTM Stock Price Predictor",
+  "model_name": "Preditor de Preços de Ações LSTM",
   "version": "1.0.0",
   "symbol": "AAPL",
   "lookback_period": 60,
@@ -85,26 +85,26 @@ All error responses follow this format:
 }
 ```
 
-**Fields**:
-- `model_name`: Name of the model
-- `version`: API version
-- `symbol`: Stock ticker the model was trained on
-- `lookback_period`: Number of historical days used for predictions
-- `lstm_units`: Number of LSTM units in the network
-- `dropout_rate`: Dropout rate used during training
-- `training_date`: ISO 8601 timestamp of training
-- `test_metrics`: Evaluation metrics on test set
-- `epochs_trained`: Number of epochs model was trained
+**Campos**:
+- `model_name`: Nome do modelo
+- `version`: Versão da API
+- `symbol`: Símbolo da ação em que o modelo foi treinado
+- `lookback_period`: Número de dias históricos usados para previsões
+- `lstm_units`: Número de unidades LSTM na rede
+- `dropout_rate`: Taxa de dropout usada durante o treinamento
+- `training_date`: Timestamp ISO 8601 do treinamento
+- `test_metrics`: Métricas de avaliação no conjunto de teste
+- `epochs_trained`: Número de épocas em que o modelo foi treinado
 
 ---
 
-### 3. Predict Single Stock Price
+### 3. Prever Preço Único de Ação
 
 **Endpoint**: `POST /predict`
 
-**Description**: Predicts the closing price for a stock symbol.
+**Descrição**: Prevê o preço de fechamento de um símbolo de ação.
 
-**Request Body**:
+**Corpo da Requisição**:
 ```json
 {
   "symbol": "AAPL",
@@ -113,54 +113,54 @@ All error responses follow this format:
 }
 ```
 
-**Parameters**:
-- `symbol` (string, required): Stock ticker symbol (e.g., "AAPL", "GOOGL", "MSFT")
-- `days_ahead` (integer, optional): Days ahead to predict (1-30, default: 1)
-- `historical_data` (array of floats, optional): Custom historical prices to use instead of downloading
+**Parâmetros**:
+- `symbol` (string, obrigatório): Símbolo do ticker da ação (ex: "AAPL", "GOOGL", "MSFT")
+- `days_ahead` (inteiro, opcional): Dias futuros para prever (1-30, padrão: 1)
+- `historical_data` (array de floats, opcional): Preços históricos customizados para usar em vez de fazer download
 
-**Response (200)**:
+**Resposta (200)**:
 ```json
 {
   "symbol": "AAPL",
   "current_price": 182.45,
   "predicted_price": 184.32,
   "prediction_date": "2024-05-12",
-  "confidence_level": "High",
+  "confidence_level": "Alta",
   "prediction_timestamp": "2024-05-11T10:30:00.123456Z"
 }
 ```
 
-**Fields**:
-- `symbol`: The stock symbol
-- `current_price`: Latest closing price
-- `predicted_price`: Predicted closing price
-- `prediction_date`: Date for the prediction
-- `confidence_level`: "High" (< 2% change), "Medium" (2-5% change), or "Low" (> 5% change)
-- `prediction_timestamp`: When the prediction was made
+**Campos**:
+- `symbol`: Símbolo da ação
+- `current_price`: Último preço de fechamento
+- `predicted_price`: Preço de fechamento previsto
+- `prediction_date`: Data da previsão
+- `confidence_level`: "Alta" (< 2% de variação), "Média" (2-5% de variação) ou "Baixa" (> 5% de variação)
+- `prediction_timestamp`: Quando a previsão foi feita
 
-**Error Response (400)**:
+**Resposta de Erro (400)**:
 ```json
 {
-  "detail": "Error downloading data: Invalid symbol"
+  "detail": "Erro ao baixar dados: Símbolo inválido"
 }
 ```
 
-**Error Response (503)**:
+**Resposta de Erro (503)**:
 ```json
 {
-  "detail": "Model not loaded"
+  "detail": "Modelo não carregado"
 }
 ```
 
 ---
 
-### 4. Predict Historical Period
+### 4. Prever Período Histórico
 
 **Endpoint**: `POST /predict/historical`
 
-**Description**: Generates predictions for a historical date range.
+**Descrição**: Gera previsões para um intervalo de datas históricas.
 
-**Request Body**:
+**Corpo da Requisição**:
 ```json
 {
   "symbol": "AAPL",
@@ -170,13 +170,13 @@ All error responses follow this format:
 }
 ```
 
-**Parameters**:
-- `symbol` (string, required): Stock ticker symbol
-- `start_date` (string, required): Start date in format "YYYY-MM-DD"
-- `end_date` (string, optional): End date in format "YYYY-MM-DD" (default: today)
-- `lookback` (integer, optional): Lookback period for LSTM (30-120, default: 60)
+**Parâmetros**:
+- `symbol` (string, obrigatório): Símbolo do ticker da ação
+- `start_date` (string, obrigatório): Data de início no formato "YYYY-MM-DD"
+- `end_date` (string, opcional): Data de término no formato "YYYY-MM-DD" (padrão: hoje)
+- `lookback` (inteiro, opcional): Período de retrospectiva para LSTM (30-120, padrão: 60)
 
-**Response (200)**:
+**Resposta (200)**:
 ```json
 {
   "symbol": "AAPL",
@@ -203,31 +203,31 @@ All error responses follow this format:
 }
 ```
 
-**Fields**:
-- `symbol`: The stock symbol
-- `predictions`: Array of prediction objects
-  - `date`: Prediction date
-  - `actual`: Actual closing price
-  - `predicted`: Predicted closing price
-  - `error`: Prediction error (actual - predicted)
-- `metrics`: Evaluation metrics
-  - `MAE`: Mean Absolute Error
-  - `RMSE`: Root Mean Square Error
-  - `MAPE`: Mean Absolute Percentage Error (%)
-- `prediction_date`: When predictions were generated
+**Campos**:
+- `symbol`: Símbolo da ação
+- `predictions`: Array de objetos de previsão
+  - `date`: Data da previsão
+  - `actual`: Preço de fechamento real
+  - `predicted`: Preço de fechamento previsto
+  - `error`: Erro de previsão (real - previsto)
+- `metrics`: Métricas de avaliação
+  - `MAE`: Erro Médio Absoluto
+  - `RMSE`: Raiz do Erro Quadrático Médio
+  - `MAPE`: Erro Percentual Médio Absoluto (%)
+- `prediction_date`: Quando as previsões foram geradas
 
-**Error Response (400)**:
+**Resposta de Erro (400)**:
 ```json
 {
-  "detail": "No data found for the specified date range"
+  "detail": "Nenhum dado encontrado para o intervalo de datas especificado"
 }
 ```
 
 ---
 
-## Usage Examples
+## Exemplos de Uso
 
-### Python (requests library)
+### Python (biblioteca requests)
 
 ```python
 import requests
@@ -235,26 +235,26 @@ import json
 
 BASE_URL = "http://localhost:8000"
 
-# 1. Health check
+# 1. Verificação de saúde
 response = requests.get(f"{BASE_URL}/health")
-print("Health:", response.json())
+print("Saúde:", response.json())
 
-# 2. Get model info
+# 2. Obter informações do modelo
 response = requests.get(f"{BASE_URL}/model/info")
 model_info = response.json()
-print("Model Info:", model_info)
+print("Informações do Modelo:", model_info)
 
-# 3. Make single prediction
+# 3. Fazer previsão única
 prediction_data = {
     "symbol": "AAPL",
     "days_ahead": 1
 }
 response = requests.post(f"{BASE_URL}/predict", json=prediction_data)
 prediction = response.json()
-print(f"Current: ${prediction['current_price']:.2f}")
-print(f"Predicted: ${prediction['predicted_price']:.2f}")
+print(f"Atual: ${prediction['current_price']:.2f}")
+print(f"Previsto: ${prediction['predicted_price']:.2f}")
 
-# 4. Historical predictions
+# 4. Previsões históricas
 historical_data = {
     "symbol": "AAPL",
     "start_date": "2024-01-01",
@@ -262,19 +262,19 @@ historical_data = {
 }
 response = requests.post(f"{BASE_URL}/predict/historical", json=historical_data)
 historical = response.json()
-print(f"Historical predictions - MAE: {historical['metrics']['MAE']:.4f}")
+print(f"Previsões históricas - MAE: {historical['metrics']['MAE']:.4f}")
 ```
 
 ### cURL
 
 ```bash
-# Health check
+# Verificação de saúde
 curl http://localhost:8000/health
 
-# Get model info
+# Obter informações do modelo
 curl http://localhost:8000/model/info
 
-# Make prediction
+# Fazer previsão
 curl -X POST http://localhost:8000/predict \
   -H "Content-Type: application/json" \
   -d '{
@@ -282,7 +282,7 @@ curl -X POST http://localhost:8000/predict \
     "days_ahead": 1
   }'
 
-# Historical predictions
+# Previsões históricas
 curl -X POST http://localhost:8000/predict/historical \
   -H "Content-Type: application/json" \
   -d '{
@@ -297,7 +297,7 @@ curl -X POST http://localhost:8000/predict/historical \
 ```javascript
 const BASE_URL = 'http://localhost:8000';
 
-// Predict price
+// Prever preço
 async function predictPrice(symbol) {
   try {
     const response = await fetch(`${BASE_URL}/predict`, {
@@ -312,15 +312,15 @@ async function predictPrice(symbol) {
     });
     
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      throw new Error(`Erro HTTP! status: ${response.status}`);
     }
     
     const data = await response.json();
-    console.log(`Current: $${data.current_price.toFixed(2)}`);
-    console.log(`Predicted: $${data.predicted_price.toFixed(2)}`);
-    console.log(`Confidence: ${data.confidence_level}`);
+    console.log(`Atual: $${data.current_price.toFixed(2)}`);
+    console.log(`Previsto: $${data.predicted_price.toFixed(2)}`);
+    console.log(`Confiança: ${data.confidence_level}`);
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Erro:', error);
   }
 }
 
@@ -343,62 +343,62 @@ async function getPrediction(symbol) {
     
     console.log(response.data);
   } catch (error) {
-    console.error('Error:', error.message);
+    console.error('Erro:', error.message);
   }
 }
 
 getPrediction('AAPL');
 ```
 
-## Rate Limiting
+## Limite de Taxa
 
-Currently, there is no rate limiting in place. For production deployment, consider implementing:
-- Rate limiting per IP address
-- Per-user API key rate limiting
-- Burst request handling
+Atualmente, não há limitação de taxa implementada. Para implantação em produção, considere implementar:
+- Limitação de taxa por endereço IP
+- Limitação de taxa por chave de API do usuário
+- Tratamento de solicitações em rajada
 
-## Response Times
+## Tempos de Resposta
 
-Expected response times:
-- Health check: < 10ms
-- Model info: < 10ms
-- Single prediction: 100-500ms
-- Historical predictions: 500-2000ms (depending on date range)
+Tempos de resposta esperados:
+- Verificação de saúde: < 10ms
+- Informações do modelo: < 10ms
+- Previsão única: 100-500ms
+- Previsões históricas: 500-2000ms (dependendo do intervalo de datas)
 
-## Supported Stock Symbols
+## Símbolos de Ações Suportados
 
-The API supports any stock symbol available on Yahoo Finance, including:
-- US Stocks: AAPL, GOOGL, MSFT, AMZN, TSLA, etc.
-- International: 0001.HK (Hong Kong), 1398.HK, etc.
+A API suporta qualquer símbolo de ação disponível no Yahoo Finance, incluindo:
+- Ações dos EUA: AAPL, GOOGL, MSFT, AMZN, TSLA, etc.
+- Internacionais: 0001.HK (Hong Kong), 1398.HK, etc.
 - ETFs: SPY, QQQ, IVV, etc.
 
-## Model Limitations
+## Limitações do Modelo
 
-- **Lookback Period**: The model uses 60 days of historical data for predictions
-- **Trained on**: AAPL data from 2019-2024
-- **Prediction Horizon**: Optimized for 1-day ahead predictions
-- **Market Gaps**: Handles weekends and market holidays
+- **Período de Retrospectiva**: O modelo usa 60 dias de dados históricos para previsões
+- **Treinado em**: Dados de AAPL de 2019-2024
+- **Horizonte de Previsão**: Otimizado para previsões de 1 dia à frente
+- **Intervalos de Mercado**: Lida com finais de semana e feriados de mercado
 
-## Best Practices
+## Melhores Práticas
 
-1. **Cache Predictions**: Cache predictions for the same symbol to reduce API load
-2. **Error Handling**: Always implement error handling for network failures
-3. **Input Validation**: Validate stock symbols before sending requests
-4. **Rate Limiting**: Implement client-side rate limiting
-5. **Monitoring**: Track prediction accuracy over time
+1. **Cache de Previsões**: Armazene em cache previsões do mesmo símbolo para reduzir a carga da API
+2. **Tratamento de Erros**: Sempre implemente tratamento de erros para falhas de rede
+3. **Validação de Entrada**: Valide símbolos de ações antes de enviar requisições
+4. **Limite de Taxa**: Implemente limitação de taxa no lado do cliente
+5. **Monitoramento**: Acompanhe a precisão das previsões ao longo do tempo
 
-## Future Enhancements
+## Melhorias Futuras
 
-- [ ] Support for multiple stock symbols in single request
-- [ ] Confidence intervals for predictions
-- [ ] Backtesting results endpoint
-- [ ] Model retraining capabilities
-- [ ] WebSocket support for real-time predictions
-- [ ] API versioning (v1, v2, etc.)
+- [ ] Suporte para múltiplos símbolos de ações em uma única requisição
+- [ ] Intervalos de confiança para previsões
+- [ ] Endpoint de resultados de backtesting
+- [ ] Capacidades de retreinamento do modelo
+- [ ] Suporte WebSocket para previsões em tempo real
+- [ ] Versionamento de API (v1, v2, etc.)
 
-## Support
+## Suporte
 
-For issues or questions:
-- Check logs at `logs/app.log`
-- Review API documentation at `/docs` (Swagger UI)
-- Check `/redoc` for alternative documentation view
+Para dúvidas ou problemas:
+- Verifique os logs em `logs/app.log`
+- Revise a documentação da API em `/docs` (Swagger UI)
+- Verifique `/redoc` para visualização alternativa da documentação
