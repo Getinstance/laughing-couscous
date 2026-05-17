@@ -47,9 +47,10 @@ class PredictionRequest(BaseModel):
     """Modelo de requisição para previsão de preço."""
     symbol: str = Field(..., example="AAPL", description="Símbolo do ticker da ação")
     days_ahead: int = Field(default=1, ge=1, le=30, description="Número de dias para prever adiante")
-    historical_data: Optional[List[float]] = Field(
-        default=None,
-        description="Preços históricos opcionais para usar ao invés de baixar"
+    days_behind: Optional[int] = Field(
+        default=720,
+        ge=90,
+        description="Dias de dados históricos para usar (padrão: 720, ou seja, ~2 anos). Minimo: 90 dias"
     )
 
 
@@ -261,11 +262,8 @@ async def predict_stock_price(request: PredictionRequest) -> Dict:
         current_price = float(current_data['Close'].iloc[-1])
         
         # Obter dados históricos
-        if request.historical_data:
-            historical_prices = np.array(request.historical_data)
-        else:
-            # Baixar últimos 2 anos de dados para garantir que temos o suficiente
-            historical_prices = get_stock_data(request.symbol, days=730)
+        # Baixar últimos 2 anos de dados para garantir que temos o suficiente
+        historical_prices = get_stock_data(request.symbol, days=request.days_behind)
         
         # Preparar sequências e prever
         sequence, _ = prepare_sequences(historical_prices, lookback_period)
