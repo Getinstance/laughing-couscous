@@ -1,106 +1,106 @@
-# Deployment Guide
+# Guia de Deploy
 
-## Overview
+## Visão Geral
 
-This guide provides step-by-step instructions for deploying the Stock Price Prediction API in different environments.
+Este guia fornece instruções passo a passo para implantar a API de Previsão de Preços de Ações em diferentes ambientes.
 
-## Table of Contents
+## Índice
 
-1. [Local Development](#local-development)
+1. [Desenvolvimento Local](#desenvolvimento-local)
 2. [Docker Local](#docker-local)
-3. [Cloud Deployment](#cloud-deployment)
-4. [Production Configuration](#production-configuration)
-5. [Monitoring & Logging](#monitoring--logging)
+3. [Deploy em Nuvem](#deploy-em-nuvem)
+4. [Configuração de Produção](#configuração-de-produção)
+5. [Monitoramento e Logging](#monitoramento-e-logging)
 
 ---
 
-## Local Development
+## Desenvolvimento Local
 
-### Prerequisites
+### Pré-requisitos
 
 - Python 3.12+
-- pip or conda
+- pip ou conda
 - Git
 
-### Installation
+### Instalação
 
-1. **Clone the repository**:
+1. **Clone o repositório**:
 ```bash
 git clone <repository_url>
 cd laughing-couscous
 ```
 
-2. **Create virtual environment**:
+2. **Crie um ambiente virtual**:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+source venv/bin/activate  # No Windows: venv\Scripts\activate
 ```
 
-3. **Install dependencies**:
+3. **Instale as dependências**:
 ```bash
 pip install -r requirements.txt
 ```
 
-4. **Verify model files exist**:
+4. **Verifique se os arquivos do modelo existem**:
 ```bash
 ls -la models/
-# Should show: lstm_model.h5, scaler.pkl, model_info.json
+# Deve mostrar: lstm_model.h5, scaler.pkl, model_info.json
 ```
 
-If files don't exist, run the Jupyter notebook:
+Se os arquivos não existirem, execute o notebook Jupyter:
 ```bash
 jupyter notebook notebooks/fase-4-lstm-model.ipynb
 ```
 
-5. **Start the API**:
+5. **Inicie a API**:
 ```bash
 python -m uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000
 ```
 
-6. **Access the API**:
-- API Docs: http://localhost:8000/docs
-- Alternative Docs: http://localhost:8000/redoc
-- Health Check: http://localhost:8000/health
+6. **Acesse a API**:
+- Documentação da API: http://localhost:8000/docs
+- Documentação Alternativa: http://localhost:8000/redoc
+- Verificação de Saúde: http://localhost:8000/health
 
 ---
 
 ## Docker Local
 
-### Prerequisites
+### Pré-requisitos
 
-- Docker installed
-- Docker Compose (optional but recommended)
+- Docker instalado
+- Docker Compose (opcional mas recomendado)
 
-### Quick Start with Docker Compose
+### Início Rápido com Docker Compose
 
-1. **Build and start services**:
+1. **Construa e inicie os serviços**:
 ```bash
 docker-compose up -d
 ```
 
-2. **Verify container is running**:
+2. **Verifique se o container está rodando**:
 ```bash
 docker-compose ps
 ```
 
-3. **Check logs**:
+3. **Verifique os logs**:
 ```bash
 docker-compose logs -f api
 ```
 
-4. **Stop services**:
+4. **Pare os serviços**:
 ```bash
 docker-compose down
 ```
 
-### Manual Docker Build
+### Construção Manual do Docker
 
-1. **Build the image**:
+1. **Construa a imagem**:
 ```bash
 docker build -t stock-prediction-api:1.0 .
 ```
 
-2. **Run the container**:
+2. **Execute o container**:
 ```bash
 docker run -d \
   --name stock-api \
@@ -109,57 +109,57 @@ docker run -d \
   stock-prediction-api:1.0
 ```
 
-3. **View logs**:
+3. **Veja os logs**:
 ```bash
 docker logs -f stock-api
 ```
 
-4. **Stop the container**:
+4. **Pare o container**:
 ```bash
 docker stop stock-api
 ```
 
 ---
 
-## Cloud Deployment
+## Deploy em Nuvem
 
 ### AWS EC2
 
-1. **Launch EC2 instance**:
+1. **Inicie uma instância EC2**:
    - AMI: Ubuntu 20.04 LTS
-   - Instance type: t3.medium (minimum)
-   - Storage: 20GB
-   - Security Group: Allow ports 80, 443, 8000
+   - Tipo de instância: t3.medium (mínimo)
+   - Armazenamento: 20GB
+   - Grupo de segurança: Permita portas 80, 443, 8000
 
-2. **Connect to instance**:
+2. **Conecte-se à instância**:
 ```bash
 ssh -i your-key.pem ubuntu@your-instance-ip
 ```
 
-3. **Install Docker**:
+3. **Instale Docker**:
 ```bash
 sudo apt update
 sudo apt install -y docker.io docker-compose
 sudo usermod -aG docker ubuntu
 ```
 
-4. **Clone repository**:
+4. **Clone o repositório**:
 ```bash
 git clone <repository_url>
 cd laughing-couscous
 ```
 
-5. **Deploy with Docker Compose**:
+5. **Deploy com Docker Compose**:
 ```bash
 docker-compose up -d
 ```
 
-6. **Setup Nginx reverse proxy**:
+6. **Configure o proxy reverso Nginx**:
 ```bash
 sudo apt install -y nginx
 ```
 
-Create `/etc/nginx/sites-available/default`:
+Crie `/etc/nginx/sites-available/default`:
 ```nginx
 server {
     listen 80 default_server;
@@ -175,26 +175,26 @@ server {
 }
 ```
 
-Restart Nginx:
+Reinicie o Nginx:
 ```bash
 sudo systemctl restart nginx
 ```
 
 ### Google Cloud Run
 
-1. **Setup Google Cloud CLI**:
+1. **Configure Google Cloud CLI**:
 ```bash
 gcloud auth login
 gcloud config set project YOUR_PROJECT_ID
 ```
 
-2. **Build and push image to Container Registry**:
+2. **Construa e envie a imagem para o Container Registry**:
 ```bash
 docker build -t gcr.io/YOUR_PROJECT_ID/stock-prediction-api:latest .
 docker push gcr.io/YOUR_PROJECT_ID/stock-prediction-api:latest
 ```
 
-3. **Deploy to Cloud Run**:
+3. **Deploy para Cloud Run**:
 ```bash
 gcloud run deploy stock-prediction-api \
   --image gcr.io/YOUR_PROJECT_ID/stock-prediction-api:latest \
@@ -205,7 +205,7 @@ gcloud run deploy stock-prediction-api \
   --cpu 2
 ```
 
-4. **Access the deployed service**:
+4. **Acesse o serviço implementado**:
 ```bash
 gcloud run services describe stock-prediction-api \
   --platform managed \
@@ -215,22 +215,22 @@ gcloud run services describe stock-prediction-api \
 
 ### Azure Container Instances
 
-1. **Login to Azure**:
+1. **Faça login no Azure**:
 ```bash
 az login
 ```
 
-2. **Create resource group**:
+2. **Crie um grupo de recursos**:
 ```bash
 az group create --name stock-prediction --location eastus
 ```
 
-3. **Build and push image**:
+3. **Construa e envie a imagem**:
 ```bash
 az acr build --registry YOUR_REGISTRY --image stock-prediction-api:latest .
 ```
 
-4. **Deploy container**:
+4. **Implante o container**:
 ```bash
 az container create \
   --resource-group stock-prediction \
@@ -244,41 +244,41 @@ az container create \
 
 ---
 
-## Production Configuration
+## Configuração de Produção
 
-### Environment Variables
+### Variáveis de Ambiente
 
-Create `.env` file:
+Crie arquivo `.env`:
 
 ```env
-# API Configuration
+# Configuração da API
 API_HOST=0.0.0.0
 API_PORT=8000
 LOG_LEVEL=info
 DEBUG=false
 
-# Security
+# Segurança
 SECRET_KEY=your-secret-key-here
 ALLOWED_HOSTS=api.example.com
 
-# Model Configuration
+# Configuração do Modelo
 MODEL_PATH=models/lstm_model.h5
 SCALER_PATH=models/scaler.pkl
 
-# Database (optional)
+# Banco de Dados (opcional)
 DATABASE_URL=postgresql://user:pass@localhost/dbname
 
-# Monitoring
+# Monitoramento
 SENTRY_DSN=https://your-sentry-url
 
-# Cache (optional)
+# Cache (opcional)
 REDIS_URL=redis://localhost:6379
 CACHE_TTL=3600
 ```
 
-### Gunicorn Configuration
+### Configuração do Gunicorn
 
-Create `gunicorn_config.py`:
+Crie `gunicorn_config.py`:
 
 ```python
 bind = "0.0.0.0:8000"
@@ -291,29 +291,29 @@ timeout = 60
 keepalive = 5
 ```
 
-Start with:
+Inicie com:
 ```bash
 gunicorn src.api.app:app --config gunicorn_config.py
 ```
 
-### SSL/TLS Certificate
+### Certificado SSL/TLS
 
-Using Let's Encrypt with Certbot:
+Usando Let's Encrypt com Certbot:
 
 ```bash
 sudo apt install -y certbot python3-certbot-nginx
 sudo certbot certonly --nginx -d api.example.com
 ```
 
-Update Nginx configuration to use certificates.
+Atualize a configuração do Nginx para usar certificados.
 
 ---
 
-## Monitoring & Logging
+## Monitoramento e Logging
 
-### Prometheus Integration
+### Integração com Prometheus
 
-1. **Install Prometheus**:
+1. **Instale Prometheus**:
 ```bash
 docker pull prom/prometheus
 ```
@@ -329,22 +329,22 @@ scrape_configs:
       - targets: ['localhost:8000']
 ```
 
-3. **Run Prometheus**:
+3. **Execute Prometheus**:
 ```bash
 docker run -p 9090:9090 \
   -v /etc/prometheus:/etc/prometheus \
   prom/prometheus
 ```
 
-### ELK Stack for Logging
+### ELK Stack para Logging
 
-1. **Docker Compose with ELK**:
+1. **Docker Compose com ELK**:
 
-See `docker-compose.elk.yml` template.
+Veja template `docker-compose.elk.yml`.
 
-2. **Configure log shipping**:
+2. **Configure envio de logs**:
 ```python
-# In app
+# Na aplicação
 import logging
 from pythonjsonlogger import jsonlogger
 
@@ -354,9 +354,9 @@ handler.setFormatter(formatter)
 logger.addHandler(handler)
 ```
 
-### Health Checks
+### Verificações de Saúde
 
-Configure health checks in your orchestration platform:
+Configure verificações de saúde em sua plataforma de orquestração:
 
 - **Kubernetes**:
 ```yaml
@@ -379,55 +379,55 @@ healthcheck:
 
 ---
 
-## Troubleshooting
+## Solução de Problemas
 
-### Container won't start
+### Container não inicia
 
 ```bash
-# Check logs
+# Verifique os logs
 docker logs stock-api
 
-# Verify model files
+# Verifique arquivos do modelo
 docker exec stock-api ls -la models/
 
-# Check memory usage
+# Verifique o uso de memória
 docker stats stock-api
 ```
 
-### High latency
+### Latência alta
 
-1. Check system resources (CPU, Memory, Disk I/O)
-2. Increase number of workers
-3. Enable caching for repeated requests
-4. Consider load balancing
+1. Verifique recursos do sistema (CPU, Memória, Disco I/O)
+2. Aumente o número de workers
+3. Ative cache para requisições repetidas
+4. Considere balanceamento de carga
 
-### Model loading errors
+### Erros ao carregar modelo
 
 ```bash
-# Rebuild container
+# Reconstrua o container
 docker-compose build --no-cache
 
-# Verify TensorFlow installation
+# Verifique instalação do TensorFlow
 docker exec stock-api python -c "import tensorflow; print(tensorflow.__version__)"
 ```
 
 ---
 
-## Backup & Recovery
+## Backup e Recuperação
 
-### Backup model
+### Backup do modelo
 
 ```bash
-# Create backup
+# Crie um backup
 tar -czf backup_$(date +%Y%m%d).tar.gz models/
 
-# Store in S3
+# Armazene no S3
 aws s3 cp backup_*.tar.gz s3://your-bucket/backups/
 ```
 
-### Automated backups
+### Backups automáticos
 
-Create a cron job:
+Crie um cron job:
 
 ```bash
 0 2 * * * cd /path/to/app && tar -czf backup_$(date +\%Y\%m\%d).tar.gz models/ && aws s3 cp backup_*.tar.gz s3://your-bucket/backups/
@@ -435,20 +435,20 @@ Create a cron job:
 
 ---
 
-## Scaling
+## Escalabilidade
 
-### Horizontal Scaling
+### Escalabilidade Horizontal
 
-Use load balancer (Nginx, HAProxy, AWS ELB):
+Use balanceador de carga (Nginx, HAProxy, AWS ELB):
 
 ```bash
-# Run multiple instances
+# Execute múltiplas instâncias
 docker-compose -f docker-compose.yml up -d --scale api=3
 ```
 
-### Vertical Scaling
+### Escalabilidade Vertical
 
-Increase resources in `docker-compose.yml`:
+Aumente recursos em `docker-compose.yml`:
 
 ```yaml
 services:
@@ -465,11 +465,11 @@ services:
 
 ---
 
-## Performance Tips
+## Dicas de Performance
 
-1. **Use CDN** for static content
-2. **Enable caching** for repeated requests
-3. **Use load balancing** for multiple instances
-4. **Monitor resource usage** and scale accordingly
-5. **Optimize database queries** if using database
-6. **Use connection pooling** for database connections
+1. **Use CDN** para conteúdo estático
+2. **Ative cache** para requisições repetidas
+3. **Use balanceamento de carga** para múltiplas instâncias
+4. **Monitore o uso de recursos** e escale conforme necessário
+5. **Otimize consultas ao banco de dados** se usando banco de dados
+6. **Use pool de conexões** para conexões de banco de dados

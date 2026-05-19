@@ -7,7 +7,7 @@ Uma API de Previsão de Preços de Ações que usa redes neurais LSTM (Long Shor
 ## URL Base
 
 - **Desenvolvimento**: `http://localhost:8000`
-- **Produção**: `https://api.example.com` (quando implementada)
+- **Produção**: `https://api.example.com` (quando implementada) (Na verdade não deu tempo.)
 
 ## Autenticação
 
