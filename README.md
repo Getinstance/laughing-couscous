@@ -3,7 +3,12 @@
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-blue)](https://www.python.org/)
 [![TensorFlow 2.14](https://img.shields.io/badge/TensorFlow-2.14-orange)](https://www.tensorflow.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109-green)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/License-MIT-purple)](LICENSE)
+
+![cuscuz](docs/cuscuz.jpg)
+
+## Link do Video 👇
+https://youtu.be/JPnzmOjMK50
+
 
 ## 📋 Descrição do Projeto
 
@@ -473,10 +478,6 @@ docker-compose logs api
 ## 📧 Contato
 
 Para dúvidas ou sugestões sobre este projeto, entre em contato.
-
-## 📄 Licença
-
-Este projeto está licenciado sob a MIT License - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ---
 

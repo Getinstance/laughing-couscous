@@ -1,5 +1,5 @@
 """
-LSTM model for stock price prediction.
+Modelo LSTM para previsão de preços de ações.
 """
 
 import numpy as np
@@ -16,34 +16,34 @@ logger = logging.getLogger(__name__)
 
 
 class LSTMModel:
-    """LSTM-based model for time series prediction."""
+    """Modelo baseado em LSTM para previsão de séries temporais."""
     
     def __init__(self, lookback: int = 60, units: int = 50, dropout: float = 0.2):
         """
-        Initialize LSTM model architecture.
+        Inicializar arquitetura do modelo LSTM.
         
         Args:
-            lookback: Number of input time steps
-            units: Number of LSTM units
-            dropout: Dropout rate
+            lookback: Número de passos de tempo de entrada
+            units: Número de unidades LSTM
+            dropout: Taxa de dropout
         """
         self.lookback = lookback
         self.units = units
         self.dropout = dropout
         self.model = None
         self.history = None
-        logger.info(f"Initialized LSTM Model with lookback={lookback}, units={units}, dropout={dropout}")
+        logger.info(f"Modelo LSTM inicializado com lookback={lookback}, units={units}, dropout={dropout}")
     
     def build(self) -> models.Sequential:
         """
-        Build the LSTM model architecture.
+        Construir a arquitetura do modelo LSTM.
         
         Returns:
-            Compiled Sequential model
+            Modelo Sequential compilado
         """
         try:
             self.model = models.Sequential([
-                # First LSTM layer
+                # Primeira camada LSTM
                 layers.LSTM(
                     units=self.units,
                     return_sequences=True,
@@ -51,38 +51,38 @@ class LSTMModel:
                 ),
                 layers.Dropout(self.dropout),
                 
-                # Second LSTM layer
+                # Segunda camada LSTM
                 layers.LSTM(
                     units=self.units,
                     return_sequences=True
                 ),
                 layers.Dropout(self.dropout),
                 
-                # Third LSTM layer
+                # Terceira camada LSTM
                 layers.LSTM(
                     units=self.units,
                     return_sequences=False
                 ),
                 layers.Dropout(self.dropout),
                 
-                # Dense layers
+                # Camadas densas
                 layers.Dense(units=25, activation='relu'),
                 layers.Dense(units=1)
             ])
             
-            # Compile model
+            # Compilar modelo
             self.model.compile(
                 optimizer='adam',
                 loss='mean_squared_error',
                 metrics=['mae']
             )
             
-            logger.info("LSTM model built successfully")
+            logger.info("Modelo LSTM construído com sucesso")
             self.model.summary()
             return self.model
             
         except Exception as e:
-            logger.error(f"Error building model: {str(e)}")
+            logger.error(f"Erro ao construir modelo: {str(e)}")
             raise
     
     def train(
@@ -96,25 +96,25 @@ class LSTMModel:
         verbose: int = 1
     ) -> Dict:
         """
-        Train the LSTM model.
+        Treinar o modelo LSTM.
         
         Args:
-            X_train: Training input data
-            y_train: Training target data
-            X_val: Validation input data
-            X_val: Validation target data
-            epochs: Number of epochs
-            batch_size: Batch size
-            verbose: Verbosity level
+            X_train: Dados de entrada de treinamento
+            y_train: Dados alvo de treinamento
+            X_val: Dados de entrada de validação
+            X_val: Dados alvo de validação
+            epochs: Número de épocas
+            batch_size: Tamanho do lote
+            verbose: Nível de verbosidade
             
         Returns:
-            Training history
+            Histórico de treinamento
         """
         if self.model is None:
             self.build()
         
         try:
-            # Reshape data for LSTM (samples, timesteps, features)
+            # Redimensionar dados para LSTM (amostras, passos de tempo, características)
             X_train = X_train.reshape((X_train.shape[0], X_train.shape[1], 1))
             if X_val is not None:
                 X_val = X_val.reshape((X_val.shape[0], X_val.shape[1], 1))
@@ -135,7 +135,7 @@ class LSTMModel:
                 verbose=1
             )
             
-            # Train model
+            # Treinar modelo
             validation_data = (X_val, y_val) if X_val is not None else None
             
             self.history = self.model.fit(
@@ -147,25 +147,25 @@ class LSTMModel:
                 verbose=verbose
             )
             
-            logger.info("Model training completed")
+            logger.info("Treinamento do modelo concluído")
             return self.history.history
             
         except Exception as e:
-            logger.error(f"Error during training: {str(e)}")
+            logger.error(f"Erro durante o treinamento: {str(e)}")
             raise
     
     def predict(self, X: np.ndarray) -> np.ndarray:
         """
-        Make predictions using the trained model.
+        Fazer previsões usando o modelo treinado.
         
         Args:
-            X: Input data
+            X: Dados de entrada
             
         Returns:
-            Predictions
+            Previsões
         """
         if self.model is None:
-            raise ValueError("Model not built yet")
+            raise ValueError("Modelo não construído ainda")
         
         X = X.reshape((X.shape[0], X.shape[1], 1))
         predictions = self.model.predict(X, verbose=0)
@@ -178,28 +178,28 @@ class LSTMModel:
         scaler=None
     ) -> Dict[str, float]:
         """
-        Evaluate model performance on test data.
+        Avaliar desempenho do modelo em dados de teste.
         
         Args:
-            X_test: Test input data
-            y_test: Test target data
-            scaler: MinMaxScaler object for inverse transformation
+            X_test: Dados de entrada de teste
+            y_test: Dados alvo de teste
+            scaler: Objeto MinMaxScaler para transformação inversa
             
         Returns:
-            Dictionary with evaluation metrics
+            Dicionário com métricas de avaliação
         """
         try:
-            # Make predictions
+            # Fazer previsões
             predictions = self.predict(X_test)
             
-            # Inverse transform if scaler provided
+            # Transformação inversa se dimensionador fornecido
             if scaler is not None:
                 predictions = scaler.inverse_transform(predictions)
                 y_test_scaled = scaler.inverse_transform(y_test.reshape(-1, 1))
             else:
                 y_test_scaled = y_test.reshape(-1, 1)
             
-            # Calculate metrics
+            # Calcular métricas
             mae = mean_absolute_error(y_test_scaled, predictions)
             rmse = np.sqrt(mean_squared_error(y_test_scaled, predictions))
             mape = mean_absolute_percentage_error(y_test_scaled, predictions)
@@ -210,30 +210,30 @@ class LSTMModel:
                 'MAPE': mape
             }
             
-            logger.info(f"Evaluation Metrics - MAE: {mae:.4f}, RMSE: {rmse:.4f}, MAPE: {mape:.4f}")
+            logger.info(f"Métricas de Avaliação - MAE: {mae:.4f}, RMSE: {rmse:.4f}, MAPE: {mape:.4f}")
             return metrics
             
         except Exception as e:
-            logger.error(f"Error during evaluation: {str(e)}")
+            logger.error(f"Erro durante a avaliação: {str(e)}")
             raise
     
     def save(self, filepath: str):
-        """Save the trained model."""
+        """Salvar o modelo treinado."""
         if self.model is None:
-            raise ValueError("Model not built yet")
+            raise ValueError("Modelo não construído ainda")
         
         try:
             self.model.save(filepath)
-            logger.info(f"Model saved to {filepath}")
+            logger.info(f"Modelo salvo em {filepath}")
         except Exception as e:
-            logger.error(f"Error saving model: {str(e)}")
+            logger.error(f"Erro ao salvar modelo: {str(e)}")
             raise
     
     def load(self, filepath: str):
-        """Load a trained model."""
+        """Carregar um modelo treinado."""
         try:
             self.model = keras.models.load_model(filepath)
-            logger.info(f"Model loaded from {filepath}")
+            logger.info(f"Modelo carregado de {filepath}")
         except Exception as e:
-            logger.error(f"Error loading model: {str(e)}")
+            logger.error(f"Erro ao carregar modelo: {str(e)}")
             raise
